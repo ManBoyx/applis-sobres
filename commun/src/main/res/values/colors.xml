@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fond">#F3F5F7</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="texte">#14181D</color>
+    <color name="texte2">#5C6773</color>
+    <color name="trait">#DCE1E6</color>
+    <color name="accent">#1D5FA8</color>
+    <color name="accent_appui">#164A84</color>
+    <color name="sur_accent">#FFFFFF</color>
+    <color name="danger">#B3261E</color>
+    <color name="appui">#1A14181D</color>
+    <color name="icone_fond">#1D4F91</color>
+    <!-- Android 8.0 ne sait pas assombrir les boutons de navigation : barre noire. -->
+    <color name="barre_navigation">#000000</color>
+</resources>

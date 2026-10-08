@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Sobre" parent="Base.Theme.Sobre">
+        <item name="android:windowLightNavigationBar">@bool/barres_claires</item>
+    </style>
+</resources>

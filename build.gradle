@@ -1,0 +1,117 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:9.3.1'
+    }
+}
+
+// La clé de signature vit dans signature/ (hors git). Sans elle, les APK de
+// version ne sont pas signés.
+def fichierCle = rootProject.file('signature/cle.properties')
+def cle = new Properties()
+if (fichierCle.exists()) {
+    fichierCle.withInputStream { cle.load(it) }
+}
+
+// Version de chaque appli : à augmenter à chaque nouvelle livraison de l'appli.
+def versions = [
+    contacts : [1, '1.0'],
+    telephone: [1, '1.0'],
+    messages : [1, '1.0'],
+    calculatrice: [1, '1.0'],
+    notes    : [1, '1.0'],
+    fichiers : [1, '1.0'],
+    galerie  : [1, '1.0'],
+    appareil : [1, '1.0'],
+    calendrier: [1, '1.0'],
+]
+
+subprojects {
+    // « commun » : le socle partagé par les applis. « essais » : les outils de test.
+    def socle = (name in ['commun', 'essais'])
+    apply plugin: socle ? 'com.android.library' : 'com.android.application'
+
+    android {
+        namespace "fr.manboyx.${project.name}"
+        compileSdk 36
+
+        defaultConfig {
+            minSdk 26
+            if (!socle) {
+                applicationId "fr.manboyx.${project.name}"
+                targetSdk 36
+                versionCode versions[project.name][0]
+                versionName versions[project.name][1]
+            }
+        }
+
+        if (!socle) {
+            signingConfigs {
+                diffusion {
+                    if (fichierCle.exists()) {
+                        storeFile rootProject.file('signature/sobre.jks')
+                        storePassword cle['motDePasse']
+                        keyAlias 'sobre'
+                        keyPassword cle['motDePasse']
+                    }
+                }
+            }
+            buildTypes {
+                release {
+                    minifyEnabled false
+                    if (fichierCle.exists()) {
+                        signingConfig signingConfigs.diffusion
+                    }
+                }
+            }
+            // Bloc destiné au Play Store, inutile pour un APK installé à la main.
+            dependenciesInfo {
+                includeInApk false
+                includeInBundle false
+            }
+        }
+
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
+        }
+
+        lint {
+            checkReleaseBuilds false
+        }
+
+        testOptions {
+            unitTests {
+                // Les tests d'écran lisent les vraies ressources.
+                includeAndroidResources = true
+                all {
+                    maxHeapSize = '900m'
+                    // ./gradlew testDebugUnitTest -Dcaptures.dir=/un/dossier écrit
+                    // des images des écrans (voir les tests « Captures »).
+                    systemProperty 'captures.dir', System.getProperty('captures.dir') ?: ''
+                }
+            }
+        }
+    }
+
+    dependencies {
+        if (!socle) {
+            implementation project(':commun')
+            // Outils de test partagés (captures d'écran, recherche d'un texte à l'écran).
+            testImplementation project(':essais')
+        }
+        if (name == 'essais') {
+            implementation project(':commun')
+            api 'junit:junit:4.13.2'
+            // Simulateur Android pour vérifier les écrans sans téléphone.
+            api 'org.robolectric:robolectric:4.16.1'
+        } else {
+            // Tests seulement : rien de ceci n'entre dans les APK.
+            testImplementation 'junit:junit:4.13.2'
+            testImplementation 'org.robolectric:robolectric:4.16.1'
+        }
+    }
+}

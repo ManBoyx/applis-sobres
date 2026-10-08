@@ -1,0 +1,20 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = 'applis-sobres'
+// Le socle partagé, puis une appli par dossier.
+include ':commun', ':essais'
+include ':contacts', ':telephone', ':messages'
+include ':calculatrice', ':notes'
+include ':fichiers', ':galerie', ':appareil'
+include ':calendrier'

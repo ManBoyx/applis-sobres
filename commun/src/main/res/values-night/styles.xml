@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Base.Theme.Sobre" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/fond</item>
+        <item name="android:statusBarColor">@color/fond</item>
+        <item name="android:navigationBarColor">@color/barre_navigation</item>
+        <item name="android:windowLightStatusBar">@bool/barres_claires</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:textColorPrimary">@color/texte</item>
+        <item name="android:textColorSecondary">@color/texte2</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

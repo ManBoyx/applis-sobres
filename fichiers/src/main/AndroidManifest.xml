@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Aucune autorisation Internet : l'appli ne communique avec rien. -->
+    <!-- Parcourir toute la mémoire du téléphone (Android 11 et suivants) : c'est l'objet même d'un gestionnaire de fichiers. -->
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <!-- La même chose sur les versions d'Android plus anciennes. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+
+    <application
+        android:allowBackup="false"
+        android:enableOnBackInvokedCallback="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Sobre">
+
+        <activity
+            android:name=".FichiersActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Fermé aux autres applis : un fichier n'est prêté qu'à celle choisie par l'utilisateur, en lecture seule. -->
+        <provider
+            android:name=".FournisseurFichiers"
+            android:authorities="fr.manboyx.fichiers.partage"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>

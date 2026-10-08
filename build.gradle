@@ -25,7 +25,7 @@ def versions = [
     notes    : [1, '1.0'],
     fichiers : [1, '1.0'],
     galerie  : [1, '1.0'],
-    appareil : [1, '1.0'],
+    appareil : [2, '1.0.1'],
     calendrier: [1, '1.0'],
 ]
 

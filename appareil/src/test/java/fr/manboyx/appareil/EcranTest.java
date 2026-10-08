@@ -295,4 +295,54 @@ public class EcranTest {
         assertEquals(Activity.RESULT_OK, shadowOf(a).getResultCode());
         assertTrue(a.isFinishing());
     }
+
+    /** Lance une demande de photo venue d'une autre appli, prend la photo, et rend ce qui a été écrit à `destination`. */
+    private int demander(ActiviteEssai[] ouverte, Uri destination) {
+        ByteArrayOutputStream recu = new ByteArrayOutputStream();
+        shadowOf(appli.getContentResolver()).registerOutputStream(destination, recu);
+        ActiviteEssai a = ouvrir(new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, destination));
+        ouverte[0] = a;
+        chambre.prete(false, true);
+        Essai.appuyer(ecran(a), "Prendre la photo");
+        chambre.ecoute.photo(jpeg(), 0);
+        Essai.attendre();
+        return recu.size();
+    }
+
+    @Test
+    public void uneDestinationQuiNEstPasPreteeParUneAppliEstRefusee() {
+        // Un chemin de fichier donné tel quel : rien ne prouve que l'appli qui demande y a droit.
+        ActiviteEssai[] a = new ActiviteEssai[1];
+        assertEquals(0, demander(a, Uri.parse("file:///storage/emulated/0/DCIM/Camera/photo-de-famille.jpg")));
+        assertEquals("La photo n'a pas pu être transmise.", ShadowToast.getTextOfLatestToast());
+        assertFalse(a[0].isFinishing());
+        assertEquals(Activity.RESULT_CANCELED, shadowOf(a[0]).getResultCode());
+    }
+
+    @Test
+    public void uneDestinationQuiContientDejaQuelqueChoseNEstJamaisEcrasee() {
+        fr.manboyx.essais.FauxFournisseur existant = fr.manboyx.essais.FauxFournisseur.installer("autre.appli.fichiers");
+        existant.lecture = (uri, colonnes, condition, arguments) -> {
+            android.database.MatrixCursor c = new android.database.MatrixCursor(colonnes);
+            c.addRow(new Object[] {2_500_000L});
+            return c;
+        };
+        ActiviteEssai[] a = new ActiviteEssai[1];
+        assertEquals(0, demander(a, Uri.parse("content://autre.appli.fichiers/photo-existante")));
+        assertEquals("La photo n'a pas pu être transmise.", ShadowToast.getTextOfLatestToast());
+        assertFalse(a[0].isFinishing());
+    }
+
+    @Test
+    public void uneDestinationVideEstAcceptee() {
+        fr.manboyx.essais.FauxFournisseur neuf = fr.manboyx.essais.FauxFournisseur.installer("autre.appli.neuf");
+        neuf.lecture = (uri, colonnes, condition, arguments) -> {
+            android.database.MatrixCursor c = new android.database.MatrixCursor(colonnes);
+            c.addRow(new Object[] {0L});
+            return c;
+        };
+        ActiviteEssai[] a = new ActiviteEssai[1];
+        assertTrue(demander(a, Uri.parse("content://autre.appli.neuf/photo-a-remplir")) > 0);
+        assertEquals(Activity.RESULT_OK, shadowOf(a[0]).getResultCode());
+    }
 }

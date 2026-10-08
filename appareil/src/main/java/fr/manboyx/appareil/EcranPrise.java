@@ -312,6 +312,27 @@ final class EcranPrise extends Ecran implements Chambre.Ecoute {
         }
     }
 
+    /**
+     * L'adresse où écrire vient d'une autre appli : on ne s'y fie pas. On
+     * n'accepte qu'un fichier prêté dans les règles (« content:// »), et jamais
+     * un fichier qui contient déjà quelque chose : une appli malveillante ne
+     * peut donc pas se servir de l'appareil photo pour écraser un fichier.
+     */
+    private boolean destinationSure(Uri destination) {
+        if (!"content".equals(destination.getScheme())) {
+            return false;
+        }
+        String[] taille = {android.provider.OpenableColumns.SIZE};
+        try (android.database.Cursor c = activite.getContentResolver().query(destination, taille, null, null, null)) {
+            if (c != null && c.moveToFirst() && !c.isNull(0) && c.getLong(0) > 0) {
+                return false;
+            }
+        } catch (RuntimeException illisible) {
+            // On ne peut pas savoir : l'écriture elle-même dira si elle est permise.
+        }
+        return true;
+    }
+
     /** Rend la photo à l'appli qui l'a demandée, sans la ranger parmi les photos du téléphone. */
     private void rendre(byte[] jpeg, int rotation) {
         Uri destination = activite.getIntent().getParcelableExtra(MediaStore.EXTRA_OUTPUT);
@@ -321,6 +342,9 @@ final class EcranPrise extends Ecran implements Chambre.Ecoute {
                 // Sans destination, l'usage est de rendre une petite image directement.
                 reponse.putExtra("data", miniature(jpeg, rotation, 16));
                 return reponse;
+            }
+            if (!destinationSure(destination)) {
+                return null;
             }
             try (OutputStream sortie = activite.getContentResolver().openOutputStream(destination)) {
                 if (sortie == null) {
